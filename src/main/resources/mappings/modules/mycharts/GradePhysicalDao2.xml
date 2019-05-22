@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jeeplus.modules.mycharts.dao.GradePhysicalDao2">
+    
+	<sql id="gradePhysicalColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.del_flag AS "delFlag",
+		a.trainee AS "trainee.id",
+		a.score AS "score",
+		a.train_physical AS "trainPhysical.id",
+		a.date AS "date",
+		a.remarks AS "remarks",
+		trainee.name AS "trainee.name",
+		trainPhysical.name AS "trainPhysical.name"
+	</sql>
+	
+	<sql id="gradePhysicalJoins">
+		LEFT JOIN trainee trainee ON trainee.id = a.trainee
+		LEFT JOIN train_physical trainPhysical ON trainPhysical.id = a.train_physical
+	</sql>
+	
+    
+	<select id="get" resultType="GradePhysical2" >
+		SELECT 
+			<include refid="gradePhysicalColumns"/>
+		FROM grade_physical a
+		<include refid="gradePhysicalJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="GradePhysical2" >
+		SELECT 
+			<include refid="gradePhysicalColumns"/>
+		FROM grade_physical a
+		<include refid="gradePhysicalJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="trainee != null and trainee.id != null and trainee.id != ''">
+				AND a.trainee LIKE 
+					<if test="dbName == 'oracle'">'%'||#{trainee.id}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{trainee.id}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{trainee.id},'%')</if>
+			</if>
+			<if test="trainPhysical != null and trainPhysical.id != null and trainPhysical.id != ''">
+				AND a.train_physical LIKE 
+					<if test="dbName == 'oracle'">'%'||#{trainPhysical.id}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{trainPhysical.id}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{trainPhysical.id},'%')</if>
+			</if>
+			<if test="date != null and date != ''">
+				AND a.date = #{date}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="GradePhysical2" >
+		SELECT 
+			<include refid="gradePhysicalColumns"/>
+		FROM grade_physical a
+		<include refid="gradePhysicalJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO grade_physical(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			del_flag,
+			trainee,
+			score,
+			train_physical,
+			date,
+			remarks
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{delFlag},
+			#{trainee.id},
+			#{score},
+			#{trainPhysical.id},
+			#{date},
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE grade_physical SET 	
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			trainee = #{trainee.id},
+			score = #{score},
+			train_physical = #{trainPhysical.id},
+			date = #{date},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM grade_physical
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE grade_physical SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="GradePhysical2" statementType="STATEMENT">
+		select * FROM grade_physical  where ${propertyName} = '${value}'
+	</select>
+	
+	<select id="findListBytrainee" resultType="Trainee">
+		SELECT 
+			*
+		FROM trainee a
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+				<if test="dbName == 'oracle'">#{name}||'%'</if>
+				<if test="dbName == 'mssql'">#{name}+'%'</if>
+				<if test="dbName == 'mysql'">concat(#{name},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	<select id="findListBytrainPhysical" resultType="TrainPhysical">
+		SELECT 
+			*
+		FROM train_physical a
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+				<if test="dbName == 'oracle'">#{name}||'%'</if>
+				<if test="dbName == 'mssql'">#{name}+'%'</if>
+				<if test="dbName == 'mysql'">concat(#{name},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+</mapper>
